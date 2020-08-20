@@ -13,8 +13,7 @@ expectedInsertSize=$6
 
 echo "converting fastq to ubam"
 
-/share/apps/jre-distros/jre1.8.0_131/bin/java \
-    -jar /share/apps/picard-tools-distros/picard-tools-2.18.5/picard.jar \
+picard \
     FastqToSam \
     F1=/data/results/$seqId/$panel/$sampleId/"$seqId"_"$sampleId"_"$laneId"_R1.fastq \
     F2=/data/results/$seqId/$panel/$sampleId/"$seqId"_"$sampleId"_"$laneId"_R2.fastq \
@@ -29,7 +28,7 @@ echo "converting fastq to ubam"
     PREDICTED_INSERT_SIZE="$expectedInsertSize" \
     SORT_ORDER=queryname \
     MAX_RECORDS_IN_RAM=2000000 \
-    TMP_DIR=/state/partition1/tmpdir \
+    TMP_DIR=./tmpdir \
     RUN_DATE=`date +%s` \
     QUIET=true \
     VERBOSITY=ERROR

@@ -13,9 +13,9 @@ echo "Running FASTQC"
 mkdir -p FASTQC
 
 # consider adding --adapter to command
-/share/apps/fastqc-distros/fastqc_v0.11.7/fastqc \
+fastqc \
     --dir /state/partition1/tmpdir \
-    --threads 12 \
+    --threads 20 \
     --extract \
     --quiet \
     "$seqId"_"$sampleId"_"$laneId"_R1.fastq \

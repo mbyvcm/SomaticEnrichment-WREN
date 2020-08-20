@@ -15,7 +15,7 @@ read2Adapter=$7
 echo "Running CutAdapt"
 
 # -m is the minumun read length
-/share/apps/anaconda2/bin/cutadapt \
+cutadapt \
     -a "$read1Adapter" \
     -A "$read2Adapter" \
     -m 50 \

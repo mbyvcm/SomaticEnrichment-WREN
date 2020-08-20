@@ -1,12 +1,4 @@
 #!/bin/bash
-set -euon pipefail
-
-# Description: Somatic Enrichment Pipeline. Requires fastq file split by lane
-# Author:      AWMGS
-# Mode:        BY_SAMPLE
-# Use:         sbatch within sample directory
-
-version="2.0.0"
 
 #SBATCH --time=12:00:00
 #SBATCH --output=SomaticEnrichment-%N-%j.output
@@ -15,7 +7,14 @@ version="2.0.0"
 #SBATCH --cpus-per-task=20
 #SBATCH --job-name="SomaticEnrichment"
 
+# Description: Somatic Enrichment Pipeline. Requires fastq file split by lane
+# Author:      AWMGS
+# Mode:        BY_SAMPLE
+# Use:         sbatch within sample directory
+
 cd "$SLURM_SUBMIT_DIR"
+
+version="2.0.0"
 
 # load sample variables
 . *.variables
@@ -44,6 +43,7 @@ module purge
 module load anaconda
 source activate SomaticEnrichment
 
+set -euo pipefail
 
 # define fastq variables
 for fastqPair in $(ls "$sampleId"_S*.fastq.gz | cut -d_ -f1-3 | sort | uniq)
