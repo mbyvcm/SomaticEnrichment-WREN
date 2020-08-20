@@ -15,9 +15,9 @@ echo "converting fastq to ubam"
 
 picard \
     FastqToSam \
-    F1=/data/results/$seqId/$panel/$sampleId/"$seqId"_"$sampleId"_"$laneId"_R1.fastq \
-    F2=/data/results/$seqId/$panel/$sampleId/"$seqId"_"$sampleId"_"$laneId"_R2.fastq \
-    O=/data/results/$seqId/$panel/$sampleId/"$seqId"_"$sampleId"_"$laneId"_unaligned.bam \
+    F1="$seqId"_"$sampleId"_"$laneId"_R1.fastq \
+    F2="$seqId"_"$sampleId"_"$laneId"_R2.fastq \
+    O="$seqId"_"$sampleId"_"$laneId"_unaligned.bam \
     QUALITY_FORMAT=Standard \
     READ_GROUP_NAME="$seqId"_"$sampleId"_"$laneId" \
     SAMPLE_NAME="$sampleId" \

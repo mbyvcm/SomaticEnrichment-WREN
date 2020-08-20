@@ -14,7 +14,7 @@ mkdir -p FASTQC
 
 # consider adding --adapter to command
 fastqc \
-    --dir /state/partition1/tmpdir \
+    --dir ./tmpdir \
     --threads 20 \
     --extract \
     --quiet \

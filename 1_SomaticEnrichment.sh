@@ -23,6 +23,9 @@ version="2.0.0"
 SCRATCH_DIR=/localscratch/"$SLURM_JOB_ID"/"$seqId"/"$sampleId"
 mkdir -p "$SCRATCH_DIR" && cd "$SCRATCH_DIR"
 
+# setup temp dir
+mkdir tmpdir
+
 # link fastq / variables files to scratch
 ln -s $SLURM_SUBMIT_DIR/* .
 
