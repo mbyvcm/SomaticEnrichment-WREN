@@ -14,9 +14,10 @@ padding=$7
 minBQS=$8
 minMQS=$9
 
+JAVA_OPTIONS="-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Djava.io.tmpdir=./tmpdir -Xmx2g"
+
 #Convert capture BED to interval_list for later
-/share/apps/jre-distros/jre1.8.0_131/bin/java -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Djava.io.tmpdir=/state/partition1/tmpdir -Xmx2g \
-    -jar /share/apps/picard-tools-distros/picard-tools-2.18.5/picard.jar BedToIntervalList \
+picard "$JAVA_OPTIONS" BedToIntervalList \
     I=$vendorCaptureBed \
     O="$panel"_capture.interval_list \
     SD=/state/partition1/db/human/gatk/2.8/b37/human_g1k_v37.dict
