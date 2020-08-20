@@ -1,34 +1,49 @@
 #!/bin/bash
-#PBS -l walltime=48:00:00
-#PBS -l ncpus=12
-set -euo pipefail
-
-PBS_O_WORKDIR=(`echo $PBS_O_WORKDIR | sed "s/^\/state\/partition1//"`)
-cd $PBS_O_WORKDIR
+set -euon pipefail
 
 # Description: Somatic Enrichment Pipeline. Requires fastq file split by lane
-# Author:      Christopher Medway, All Wales Medical Genetics Service. Includes code from GermlineEnrichment-2.5.2
+# Author:      AWMGS
 # Mode:        BY_SAMPLE
-# Use:         bash within sample directory
+# Use:         sbatch within sample directory
 
-version="1.3.0"
+version="2.0.0"
+
+#SBATCH --time=12:00:00
+#SBATCH --output=SomaticEnrichment-%N-%j.output
+#SBATCH --error=SomaticEnrichment-%N-%j.error
+#SBATCH --partition=high
+#SBATCH --cpus-per-task=20
+#SBATCH --job-name="SomaticEnrichment"
+
+cd "$SLURM_SUBMIT_DIR"
 
 # load sample variables
 . *.variables
 
-# copy script library
-cp -r /data/diagnostics/pipelines/"$pipelineName"/"$pipelineName"-"$pipelineVersion"/SomaticEnrichmentLib-"$version" /data/results/"$seqId"/"$panel"/"$sampleId"/
+# setup local scratch
+SCRATCH_DIR=/localscratch/"$SLURM_JOB_ID"/"$seqId"/"$sampleId"
+mkdir -p "$SCRATCH_DIR" && cd "$SCRATCH_DIR"
+
+# link fastq / variables files to scratch
+ln -s $SLURM_SUBMIT_DIR/* .
+
+# copy library resources
+pipeline_dir=/data/diagnostics/pipelines/"$pipelineName"/"$pipelineName"-"$pipelineVersion"
+cp -r "$pipeline_dir"/SomaticEnrichmentLib-"$version" .
+cp "$pipeline_dir"/"$panel"/"$panel".variables .
 
 # load pipeline variables
-. /data/diagnostics/pipelines/"$pipelineName"/"$pipelineName"-"$pipelineVersion"/"$panel"/"$panel".variables
+. "$panel".variables
 
 # path to panel capture bed file
 vendorCaptureBed=/data/diagnostics/pipelines/"$pipelineName"/"$pipelineName"-"$pipelineVersion"/"$panel"/180702_HG19_PanCancer_EZ_capture_targets.bed
 vendorPrimaryBed=/data/diagnostics/pipelines/"$pipelineName"/"$pipelineName"-"$pipelineVersion"/"$panel"/180702_HG19_PanCancer_EZ_primary_targets.bed
 
-# path go GATK versions
-gatk4=/share/apps/GATK-distros/GATK_4.0.4.0/gatk
-gatk3=/share/apps/GATK-distros/GATK_3.8.0/GenomeAnalysisTK.jar
+# activate conda env
+module purge
+module load anaconda
+source activate SomaticEnrichment
+
 
 # define fastq variables
 for fastqPair in $(ls "$sampleId"_S*.fastq.gz | cut -d_ -f1-3 | sort | uniq)
