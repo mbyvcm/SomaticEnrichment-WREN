@@ -10,7 +10,9 @@ seqId=$1
 sampleId=$2
 laneId=$3
 
-picard \
+JAVA_OPTIONS="-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Djava.io.tmpdir=./tmpdir -Xmx2g"
+
+picard "$JAVA_OPTIONS" \
     SamToFastq \
     I="$seqId"_"$sampleId"_"$laneId"_unaligned.bam \
     FASTQ=/dev/stdout \
@@ -28,17 +30,17 @@ bwa mem \
     -t 12 \
     -p \
     -v 1 \
-    /state/partition1/db/human/mappers/b37/bwa/human_g1k_v37.fasta \
+    /home/transfer/partition1/resources/human/mappers/b37/bwa/human_g1k_v37.fasta \
     /dev/stdin \
     | \
     # pipe bam file to merge bam alignment
-picard \
+picard "$JAVA_OPTIONS" \
     MergeBamAlignment \
     EXPECTED_ORIENTATIONS=FR \
     ALIGNED_BAM=/dev/stdin \
     UNMAPPED_BAM="$seqId"_"$sampleId"_"$laneId"_unaligned.bam \
     OUTPUT="$seqId"_"$sampleId"_"$laneId"_aligned.bam \
-    REFERENCE_SEQUENCE=/state/partition1/db/human/mappers/b37/bwa/human_g1k_v37.fasta \
+    REFERENCE_SEQUENCE=/home/transfer/partition1/resources/human/mappers/b37/bwa/human_g1k_v37.fasta \
     PAIRED_RUN=true \
     SORT_ORDER="coordinate" \
     CLIP_ADAPTERS=false \
@@ -49,7 +51,3 @@ picard \
     QUIET=true \
     VERBOSITY=ERROR \
     TMP_DIR=./tmpdir
-        
-
-# clean
-rm "$seqId"_"$sampleId"_"$laneId"_unaligned.bam

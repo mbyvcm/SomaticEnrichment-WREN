@@ -86,17 +86,9 @@ done
 # merge & mark duplicate reads
 ./SomaticEnrichmentLib-"$version"/mark_duplicates.sh $seqId $sampleId 
 
-# basequality recalibration
-# >100^6 on target bases required for this to be effective
-if [ "$includeBQSR = true" ] ; then
-    ./SomaticEnrichmentLib-"$version"/bqsr.sh $seqId $sampleId $panel $vendorCaptureBed $padding $gatk4
-else
-    echo "skipping base quality recalibration"
-    cp "$seqId"_"$sampleId"_rmdup.bam "$seqId"_"$sampleId".bam
-    cp "$seqId"_"$sampleId"_rmdup.bai "$seqId"_"$sampleId".bai
-fi
-
-rm "$seqId"_"$sampleId"_rmdup.bam "$seqId"_"$sampleId"_rmdup.bai
+# rename bam files
+mv "$seqId"_"$sampleId"_rmdup.bam "$seqId"_"$sampleId".bam
+mv "$seqId"_"$sampleId"_rmdup.bai "$seqId"_"$sampleId".bai
 
 # post-alignment QC
 ./SomaticEnrichmentLib-"$version"/post_alignment_qc.sh \

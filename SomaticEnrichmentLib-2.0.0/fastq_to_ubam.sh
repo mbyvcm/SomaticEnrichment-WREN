@@ -32,6 +32,3 @@ picard \
     RUN_DATE=`date +%s` \
     QUIET=true \
     VERBOSITY=ERROR
-
-rm /data/results/$seqId/$panel/$sampleId/"$seqId"_"$sampleId"_"$laneId"_R1.fastq
-rm /data/results/$seqId/$panel/$sampleId/"$seqId"_"$sampleId"_"$laneId"_R2.fastq
