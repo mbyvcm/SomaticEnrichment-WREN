@@ -110,16 +110,16 @@ mv "$seqId"_"$sampleId"_rmdup.bai "$seqId"_"$sampleId".bai
     $pipelineName \
     $pipelineVersion \
     $minimumCoverage \
-    $vendorCaptureBed \
+    $vendorPrimaryBed \
     $padding \
     $minBQS \
     $minMQS
 
 # variant calling
-./SomaticEnrichmentLib-"$version"/mutect2.sh $seqId $sampleId $pipelineName $version $panel $padding $minBQS $minMQS $vendorCaptureBed $gatk4
+./SomaticEnrichmentLib-"$version"/mutect2.sh $seqId $sampleId $pipelineName $version $panel $padding $minBQS $minMQS $vendorPrimaryBed
 
 # variant filter
-./SomaticEnrichmentLib-"$version"/variant_filter.sh $seqId $sampleId $panel $minBQS $minMQS $gatk4
+./SomaticEnrichmentLib-"$version"/variant_filter.sh $seqId $sampleId $panel $minBQS $minMQS
 
 # annotation
 # check that there are called variants to annotate

@@ -10,7 +10,7 @@ panel=$3
 pipelineName=$4
 pipelineVersion=$5
 minimumCoverage=$6
-vendorCaptureBed=$7
+vendorPrimaryBed=$7
 padding=$8
 minBQS=$9
 minMQS=${10}
@@ -23,16 +23,16 @@ IFS=',' read -r -a COV <<< "${minimumCoverage}"
 # add given padding to vendor bedfile
 bedtools \
     slop \
-    -i $vendorCaptureBed \
+    -i $vendorPrimaryBed \
     -b $padding \
-    -g /data/diagnostics/apps/bedtools/bedtools-v2.29.1/genomes/human.hg19.genome > vendorCaptureBed_100pad.bed
+    -g /data/diagnostics/apps/bedtools/bedtools-v2.29.1/genomes/human.hg19.genome > vendorPrimaryBed_100pad.bed
 
 # generate per-base coverage: variant detection sensitivity
 gatk "$JAVA_OPTIONS" \
     -T DepthOfCoverage \
     -R /home/transfer/resources/human/gatk/2.8/b37/human_g1k_v37.fasta \
     -I "$seqId"_"$sampleId".bam \
-    -L vendorCaptureBed_100pad.bed \
+    -L vendorPrimaryBed_100pad.bed \
     -o "$seqId"_"$sampleId"_DepthOfCoverage \
     --countType COUNT_FRAGMENTS \
     --minMappingQuality $minMQS \

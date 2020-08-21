@@ -12,17 +12,16 @@ panel=$5
 padding=$6
 minBQS=$7
 minMQS=$8
-vendorCaptureBed=$9
-gatk4=${10}
+vendorPrimaryBed=$9
 
-$gatk4 --java-options "-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Djava.io.tmpdir=/state/partition1/tmpdir -Xmx4g" \
+gatk4 --java-options "-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Djava.io.tmpdir=./tmpdir -Xmx4g" \
     Mutect2 \
-    --reference /state/partition1/db/human/gatk/2.8/b37/human_g1k_v37.fasta \
+    --reference /home/transfer/resources/human/gatk/2.8/b37/human_g1k_v37.fasta \
     --input "$seqId"_"$sampleId".bam \
     --tumor $sampleId \
     --genotype-germline-sites true \
     --genotyping-mode DISCOVERY \
-    --intervals $vendorCaptureBed \
+    --intervals $vendorPrimaryBed \
     --interval-padding $padding \
     --max-population-af 0.5 \
     --output-mode EMIT_ALL_SITES \
