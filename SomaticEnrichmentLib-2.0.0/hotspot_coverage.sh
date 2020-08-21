@@ -25,7 +25,7 @@ bedtools \
     slop \
     -i $vendorCaptureBed \
     -b $padding \
-    -g /data/diagnostics/apps/bedtools-v2.29.1/genomes/human.hg19.genome > vendorCaptureBed_100pad.bed
+    -g /data/diagnostics/apps/bedtools/bedtools-v2.29.1/genomes/human.hg19.genome > vendorCaptureBed_100pad.bed
 
 # generate per-base coverage: variant detection sensitivity
 gatk "$JAVA_OPTIONS" \

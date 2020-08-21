@@ -20,7 +20,7 @@ version="2.0.0"
 . *.variables
 
 # setup local scratch
-SCRATCH_DIR=/localscratch/"$SLURM_JOB_ID"/"$seqId"/"$sampleId"
+SCRATCH_DIR=/localscratch/"$SLURM_JOB_ID"/"$seqId"/"$worklistId"/"$panel"/"$sampleId"
 mkdir -p "$SCRATCH_DIR" && cd "$SCRATCH_DIR"
 
 # setup temp dir
