@@ -113,8 +113,7 @@ mv "$seqId"_"$sampleId"_rmdup.bai "$seqId"_"$sampleId".bai
     $vendorCaptureBed \
     $padding \
     $minBQS \
-    $minMQS \
-    $gatk3
+    $minMQS
 
 # variant calling
 ./SomaticEnrichmentLib-"$version"/mutect2.sh $seqId $sampleId $pipelineName $version $panel $padding $minBQS $minMQS $vendorCaptureBed $gatk4

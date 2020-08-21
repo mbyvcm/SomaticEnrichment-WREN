@@ -14,25 +14,26 @@ vendorCaptureBed=$7
 padding=$8
 minBQS=$9
 minMQS=${10}
-gatk3=${11}
+
+JAVA_OPTIONS="-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Djava.io.tmpdir=./tmpdir -Xmx2g"
 
 # minimumCoverage to array COV
 IFS=',' read -r -a COV <<< "${minimumCoverage}"
 
 # add given padding to vendor bedfile
-/share/apps/bedtools-distros/bedtools-2.26.0/bin/bedtools \
+bedtools \
     slop \
     -i $vendorCaptureBed \
     -b $padding \
-    -g /share/apps/bedtools-distros/bedtools-2.26.0/genomes/human.hg19.genome > vendorCaptureBed_100pad.bed
+    -g /data/diagnostics/apps/bedtools-v2.29.1/genomes/human.hg19.genome > vendorCaptureBed_100pad.bed
 
 # generate per-base coverage: variant detection sensitivity
-/share/apps/jre-distros/jre1.8.0_131/bin/java -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Djava.io.tmpdir=/state/partition1/tmpdir -Xmx4g -jar $gatk3 \
+gatk "$JAVA_OPTIONS" \
     -T DepthOfCoverage \
-    -R /state/partition1/db/human/gatk/2.8/b37/human_g1k_v37.fasta \
-    -I /data/results/$seqId/$panel/$sampleId/"$seqId"_"$sampleId".bam \
+    -R /home/transfer/resources/human/gatk/2.8/b37/human_g1k_v37.fasta \
+    -I "$seqId"_"$sampleId".bam \
     -L vendorCaptureBed_100pad.bed \
-    -o /data/results/$seqId/$panel/$sampleId/"$seqId"_"$sampleId"_DepthOfCoverage \
+    -o "$seqId"_"$sampleId"_DepthOfCoverage \
     --countType COUNT_FRAGMENTS \
     --minMappingQuality $minMQS \
     --minBaseQuality $minBQS \
@@ -42,36 +43,36 @@ IFS=',' read -r -a COV <<< "${minimumCoverage}"
     -dt NONE
 
 # reformat depth file
-sed 's/:/\t/g' /data/results/$seqId/$panel/$sampleId/"$seqId"_"$sampleId"_DepthOfCoverage \
+sed 's/:/\t/g' "$seqId"_"$sampleId"_DepthOfCoverage \
     | grep -v "^Locus" \
     | sort -k1,1 -k2,2n \
-    | /share/apps/htslib-distros/htslib-1.4.1/bgzip > /data/results/$seqId/$panel/$sampleId/"$seqId"_"$sampleId"_DepthOfCoverage.gz
+    | bgzip > "$seqId"_"$sampleId"_DepthOfCoverage.gz
 
 # tabix index depth file
-/share/apps/htslib-distros/htslib-1.4.1/tabix -b 2 -e 2 -s 1 /data/results/$seqId/$panel/$sampleId/"$seqId"_"$sampleId"_DepthOfCoverage.gz
+tabix -b 2 -e 2 -s 1 "$seqId"_"$sampleId"_DepthOfCoverage.gz
 
 # loop over each depth threshold (i.e. 250x, 135x)
 for depth in "${COV[@]}"
 do
     echo $depth
 
-    hscov_outdir=/data/results/$seqId/$panel/$sampleId/hotspot_coverage_"$depth"x/
+    hscov_outdir=hotspot_coverage_"$depth"x
 
     # loop over referral bedfiles and generate coverage report 
     if [ -d /data/diagnostics/pipelines/$pipelineName/$pipelineName-$pipelineVersion/$panel/hotspot_coverage ];then
 
     mkdir -p $hscov_outdir
 
-    source /home/transfer/miniconda3/bin/activate CoverageCalculatorPy
+    source activate CoverageCalculatorPy
 
     for bedFile in /data/diagnostics/pipelines/"$pipelineName"/"$pipelineName"-"$pipelineVersion"/$panel/hotspot_coverage/*.bed; do
 
         name=$(echo $(basename $bedFile) | cut -d"." -f1)
         echo $name
 
-        python /home/transfer/pipelines/CoverageCalculatorPy/CoverageCalculatorPy.py \
+        python /data/diagnostics/apps/CoverageCalculatorPy/CoverageCalculatorPy-v1.1.0/CoverageCalculatorPy.py \
             -B $bedFile \
-            -D /data/results/$seqId/$panel/$sampleId/"$seqId"_"$sampleId"_DepthOfCoverage.gz \
+            -D "$seqId"_"$sampleId"_DepthOfCoverage.gz \
             --depth $depth \
             --padding 0 \
             --groupfile /data/diagnostics/pipelines/$pipelineName/$pipelineName-$pipelineVersion/$panel/hotspot_coverage/"$name".groups \
@@ -92,11 +93,11 @@ do
 
     done
 
-    source /home/transfer/miniconda3/bin/deactivate
+    source deactivate
 
 
     # add hgvs nomenclature to gaps
-    source /home/transfer/miniconda3/bin/activate bed2hgvs
+    source activate bed2hgvs
 
     for gapsFile in $hscov_outdir/*genescreen.nohead.gaps $hscov_outdir/*hotspots.nohead.gaps; do
 
@@ -104,15 +105,15 @@ do
         echo $name
 
         python /data/diagnostics/apps/bed2hgvs/bed2hgvs-0.1.1/bed2hgvs.py \
-           --config /data/diagnostics/apps/bed2hgvs/bed2hgvs-0.1/configs/cluster.yaml \
+            --config /data/diagnostics/apps/bed2hgvs/bed2hgvs-0.1.1/configs/cluster.yaml \
             --input $gapsFile \
             --output $hscov_outdir/"$name".gaps \
-            --transcript_map /data/diagnostics/pipelines/SomaticEnrichment/SomaticEnrichment-0.0.1/RochePanCancer/RochePanCancer_PreferredTranscripts.txt
+            --transcript_map /data/diagnostics/pipelines/$pipelineName/"$pipelineName"-"$pipelineVersion"/$panel/RochePanCancer_PreferredTranscripts.txt
 
         rm $hscov_outdir/"$name".nohead.gaps
     done
     
-    source /home/transfer/miniconda3/bin/deactivate
+    source deactivate
 
     # combine all total coverage files
     if [ -f $hscov_outdir/"$sampleId"_coverage.txt ]; then rm $hscov_outdir/"$sampleId"_coverage.txt; fi
@@ -124,8 +125,3 @@ do
     fi
 
 done
-
-rm vendorCaptureBed_100pad.bed
-rm *interval_statistics
-rm *interval_summary
-rm *sample_statistics
