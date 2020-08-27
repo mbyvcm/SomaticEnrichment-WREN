@@ -28,7 +28,7 @@ bedtools \
     -g /data/diagnostics/apps/bedtools/bedtools-v2.29.1/genomes/human.hg19.genome > vendorPrimaryBed_100pad.bed
 
 # generate per-base coverage: variant detection sensitivity
-gatk "$JAVA_OPTIONS" \
+gatk --java-options "-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Djava.io.tmpdir=./tmpdir -Xmx4g" \
     -T DepthOfCoverage \
     -R /home/transfer/resources/human/gatk/2.8/b37/human_g1k_v37.fasta \
     -I "$seqId"_"$sampleId".bam \
