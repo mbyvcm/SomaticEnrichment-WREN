@@ -10,7 +10,9 @@ panel=$3
 pipelineName=$4
 pipelineVersion=$5
 
+set +u
 source /home/transfer/miniconda3/bin/activate vcf_parse
+set -u
     
 mkdir -p hotspot_variants
 
@@ -19,6 +21,8 @@ python /data/diagnostics/apps/vcf_parse/vcf_parse-0.1.2/vcf_parse.py \
     --transcript_strictness low \
     --config /data/diagnostics/pipelines/$pipelineName/"$pipelineName"-"$pipelineVersion"/$panel/"$panel"_ReportConfig.txt \
     --bed_folder /data/diagnostics/pipelines/$pipelineName/"$pipelineName"-"$pipelineVersion"/$panel/hotspot_variants/ \
-    /data/results/$seqId/$panel/$sampleId/"$seqId"_"$sampleId"_filteredStrLeftAligned_annotated.vcf
+    "$seqId"_"$sampleId"_filteredStrLeftAligned_annotated.vcf
 
+set +u
 source /home/transfer/miniconda3/bin/deactivate
+set -u
