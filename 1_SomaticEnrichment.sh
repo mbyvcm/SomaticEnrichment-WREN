@@ -138,16 +138,10 @@ if [ $sampleId != 'NTC' ]; then
 fi
 
 # add samplename to run-level file if vcf detected
-if [ -e /data/results/$seqId/$panel/$sampleId/"$seqId"_"$sampleId"_filteredStrLeftAligned_annotated.vcf ]
+if [ -e "$seqId"_"$sampleId"_filteredStrLeftAligned_annotated.vcf ]
 then
-    echo $sampleId >> /data/results/$seqId/$panel/sampleVCFs.txt
+    echo $sampleId >> ../sampleVCFs.txt
 fi
-
-# tidy up
-rm /data/results/$seqId/$panel/$sampleId/*.interval_list
-rm /data/results/$seqId/$panel/$sampleId/seqArtifacts.*
-rm /data/results/$seqId/$panel/$sampleId/getpileupsummaries.table
-rm /data/results/$seqId/$panel/$sampleId/calculateContamination.table
 
 
 # ---------------------------------------------------------------------------------------------------------
@@ -170,10 +164,6 @@ then
     
     # pull all the qc data together and generate combinedQC.txt
     ./SomaticEnrichmentLib-"$version"/compileQcReport.sh $seqId $panel
-    
-    # tidy up
-    rm /data/results/$seqId/$panel/*.cnn
-    rm /data/results/$seqId/$panel/*.bed
 
 else
     echo "not all samples have completed running. Finishing process for this sample."

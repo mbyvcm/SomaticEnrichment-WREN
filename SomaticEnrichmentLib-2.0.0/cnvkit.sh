@@ -12,18 +12,20 @@ vendorCaptureBed=$3
 version=$4
 
 # resources
-FASTA=/data/db/human/gatk/2.8/b37/human_g1k_v37.fasta
-cnvkit=/share/apps/anaconda2/bin/cnvkit.py
+FASTA=/home/transfer/resources/human/gatk/2.8/b37/human_g1k_v37.fasta
 
-# navigate to run directory
-cd /data/results/$seqId/$panel/
+# navigate to run-level directory
+cd ../
 
-samples=$(cat /data/results/$seqId/$panel/sampleVCFs.txt | grep -v "NTC")
-bams=$(for s in $samples; do echo /data/results/$seqId/$panel/$s/"$seqId"_"$s".bam ;done)
+samples=$(cat sampleVCFs.txt | grep -v "NTC")
+bams=$(for s in $samples; do echo $PWD/$s/"$seqId"_"$s".bam ;done)
 
+set +u
+source activate cnvkit
+set -u
 
 # 1. RUN FOR ALL SAMPLES IN RUN
-$cnvkit autobin $bams -t $vendorCaptureBed -g /data/db/human/cnvkit/access-excludes.hg19.bed --annotate /data/db/human/cnvkit/refFlat.txt 
+cnvkit autobin $bams -t $vendorCaptureBed -g /home/transfer/resources/human/cnvkit/access-excludes.hg19.bed --annotate /home/transfer/resources/human/cnvkit/refFlat.txt 
 
 
 # ---------------------------------------------------------------------------------------------------------
@@ -31,7 +33,7 @@ $cnvkit autobin $bams -t $vendorCaptureBed -g /data/db/human/cnvkit/access-exclu
 # ---------------------------------------------------------------------------------------------------------
 
 # initialise file to keep track of which samples have already been processed with CNVKit script 1 - wipe file clean if it already exists
-> /data/results/$seqId/$panel/samplesCNVKit_script1.txt
+> "$runDir"/samplesCNVKit_script1.txt
 
 # schedule each sample to be processed with 1_cnvkit.sh
 for i in ${samples[@]}
@@ -40,15 +42,15 @@ do
     echo $sample
 
     # queue 1_cnvkit
-    qsub -o ./$i/ -e ./$i/  /data/diagnostics/pipelines/SomaticEnrichment/SomaticEnrichment-"$version"/SomaticEnrichmentLib-"$version"/1_cnvkit.sh -F "$cnvkit $seqId $panel $sample"
+    sbatch -o ./$i/ -e ./$i/ /data/diagnostics/pipelines/SomaticEnrichment/SomaticEnrichment-"$version"/SomaticEnrichmentLib-"$version"/1_cnvkit.sh -F "$cnvkit $seqId $panel $sample"
 
     # make cnvkit directory - needed for make_cnvkit_arrays python script downstream
-    mkdir -p /data/results/$seqId/$panel/$sample/CNVKit/
+    mkdir -p $runDir/$sample/CNVKit/
 done
 
 # check that cnvkit script 1 have all finished before next step
 numberOfProcessedCnvFiles=0
-numberOfInputFiles=$(cat /data/results/$seqId/$panel/sampleVCFs.txt | grep -v 'NTC' | wc -l)
+numberOfInputFiles=$(cat sampleVCFs.txt | grep -v 'NTC' | wc -l)
 
 until [ $numberOfProcessedCnvFiles -eq $numberOfInputFiles ]
 do
