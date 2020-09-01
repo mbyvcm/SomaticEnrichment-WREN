@@ -11,7 +11,7 @@ pipelineName=$4
 pipelineVersion=$5
 
 set +u
-source /home/transfer/miniconda3/bin/activate vcf_parse
+source activate vcf_parse
 set -u
     
 mkdir -p hotspot_variants
@@ -24,5 +24,5 @@ python /data/diagnostics/apps/vcf_parse/vcf_parse-0.1.2/vcf_parse.py \
     "$seqId"_"$sampleId"_filteredStrLeftAligned_annotated.vcf
 
 set +u
-source /home/transfer/miniconda3/bin/deactivate
+conda deactivate
 set -u
