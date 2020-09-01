@@ -8,7 +8,9 @@ seqId=$1
 sampleId=$2
 panel=$3
 
-conda activate VEP
+set +u 
+source activate VEP
+set -u
 
 vep \
     --input_file "$seqId"_"$sampleId"_filteredStrLeftAligned.vcf \
@@ -35,7 +37,10 @@ vep \
     --custom /home/transfer/resources/human/gnomad/gnomad.exomes.r2.0.1.sites.vcf.gz,GNOMAD,vcf,exact,0,AF \
     --custom /home/transfer/resources/human/cosmic/b37/cosmic_78.b37.vcf.gz,COSMIC,vcf,exact,0
 
-conda deactivate VEP
+set +u
+conda deactivate
+source activate SomaticEnrichment
+set -u
 
 # index and validation
 gatk --java-options "-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Djava.io.tmpdir=./tmpdir -Xmx4g" \
