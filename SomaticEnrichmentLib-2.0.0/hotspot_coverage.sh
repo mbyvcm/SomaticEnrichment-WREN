@@ -29,14 +29,13 @@ bedtools \
 
 # generate per-base coverage: variant detection sensitivity
 gatk --java-options "-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Djava.io.tmpdir=./tmpdir -Xmx4g" \
-    -T DepthOfCoverage \
+    DepthOfCoverage \
     -R /home/transfer/resources/human/gatk/2.8/b37/human_g1k_v37.fasta \
     -I "$seqId"_"$sampleId".bam \
     -L vendorPrimaryBed_100pad.bed \
-    -o "$seqId"_"$sampleId"_DepthOfCoverage \
-    --countType COUNT_FRAGMENTS \
-    --minMappingQuality $minMQS \
-    --minBaseQuality $minBQS \
+    -O "$seqId"_"$sampleId"_DepthOfCoverage \
+    --count-type COUNT_FRAGMENTS \
+    --min-base-quality $minBQS \
     -ct ${COV[0]} \
     --omitLocusTable \
     -rf MappingQualityUnavailable \

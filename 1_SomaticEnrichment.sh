@@ -103,17 +103,17 @@ mv "$seqId"_"$sampleId"_rmdup.bai "$seqId"_"$sampleId".bai
     $minMQS
 
 # coverage calculations
-./SomaticEnrichmentLib-"$version"/hotspot_coverage.sh \
-    $seqId \
-    $sampleId \
-    $panel \
-    $pipelineName \
-    $pipelineVersion \
-    $minimumCoverage \
-    $vendorPrimaryBed \
-    $padding \
-    $minBQS \
-    $minMQS
+#./SomaticEnrichmentLib-"$version"/hotspot_coverage.sh \
+#    $seqId \
+#    $sampleId \
+#    $panel \
+#    $pipelineName \
+#    $pipelineVersion \
+#    $minimumCoverage \
+#    $vendorPrimaryBed \
+#    $padding \
+#    $minBQS \
+#    $minMQS
 
 # variant calling
 ./SomaticEnrichmentLib-"$version"/mutect2.sh $seqId $sampleId $pipelineName $version $panel $padding $minBQS $minMQS $vendorPrimaryBed
@@ -124,7 +124,7 @@ mv "$seqId"_"$sampleId"_rmdup.bai "$seqId"_"$sampleId".bai
 # annotation
 # check that there are called variants to annotate
 if [ $(grep -v "#" "$seqId"_"$sampleId"_filteredStrLeftAligned.vcf | grep -v '^ ' | wc -l) -ne 0 ]; then
-    ./SomaticEnrichmentLib-"$version"/annotation.sh $seqId $sampleId $panel $gatk4
+    ./SomaticEnrichmentLib-"$version"/annotation.sh $seqId $sampleId $panel
 else
     mv "$seqId"_"$sampleId"_filteredStrLeftAligned.vcf "$seqId"_"$sampleId"_filteredStrLeftAligned_annotated.vcf
 fi

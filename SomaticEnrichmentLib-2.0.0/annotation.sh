@@ -7,12 +7,13 @@ set -euo pipefail
 seqId=$1
 sampleId=$2
 panel=$3
-gatk4=$4
 
-perl /share/apps/vep-distros/ensembl-tools-release-86/scripts/variant_effect_predictor/variant_effect_predictor.pl \
-    --input_file /data/results/$seqId/$panel/$sampleId/"$seqId"_"$sampleId"_filteredStrLeftAligned.vcf \
+conda activate VEP
+
+vep \
+    --input_file "$seqId"_"$sampleId"_filteredStrLeftAligned.vcf \
     --format vcf \
-    --output_file /data/results/$seqId/$panel/$sampleId/"$seqId"_"$sampleId"_filteredStrLeftAligned_annotated.vcf \
+    --output_file "$seqId"_"$sampleId"_filteredStrLeftAligned_annotated.vcf \
     --vcf \
     --everything \
     --fork 12 \
@@ -27,16 +28,16 @@ perl /share/apps/vep-distros/ensembl-tools-release-86/scripts/variant_effect_pre
     --force_overwrite \
     --no_stats \
     --offline \
-    --dir /share/apps/vep-distros/ensembl-tools-release-86/scripts/variant_effect_predictor/annotations \
-    --fasta /share/apps/vep-distros/ensembl-tools-release-86/scripts/variant_effect_predictor/annotations \
+    --dir /home/transfer/resources/human/vep-cache/refseq37_v86 \
+    --fasta /home/transfer/resources/human/vep-cache/refseq37_v86/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa \
     --species homo_sapiens \
     --refseq \
-    --custom /data/db/human/gnomad/gnomad.exomes.r2.0.1.sites.vcf.gz,GNOMAD,vcf,exact,0,AF \
-    --custom /data/db/human/cosmic/b37/cosmic_78.b37.vcf.gz,COSMIC,vcf,exact,0
+    --custom /home/transfer/resources/human/gnomad/gnomad.exomes.r2.0.1.sites.vcf.gz,GNOMAD,vcf,exact,0,AF \
+    --custom /home/transfer/resources/human/cosmic/b37/cosmic_78.b37.vcf.gz,COSMIC,vcf,exact,0
+
+conda deactivate VEP
 
 # index and validation
-$gatk4 --java-options "-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Djava.io.tmpdir=/state/partition1/tmpdir -Xmx4g" \
+gatk --java-options "-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Djava.io.tmpdir=./tmpdir -Xmx4g" \
     IndexFeatureFile \
-    -F /data/results/$seqId/$panel/$sampleId/"$seqId"_"$sampleId"_filteredStrLeftAligned_annotated.vcf
-
-rm /data/results/$seqId/$panel/$sampleId/"$seqId"_"$sampleId"_filteredStrLeftAligned.vcf
+    -F "$seqId"_"$sampleId"_filteredStrLeftAligned_annotated.vcf

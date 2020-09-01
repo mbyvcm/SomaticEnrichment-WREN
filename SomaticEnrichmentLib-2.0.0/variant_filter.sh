@@ -11,19 +11,20 @@ sampleId=$2
 panel=$3
 minBQS=$4
 minMQS=$5
+vendorPrimaryBed=$6
 
-gatk4 --java-options "-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Djava.io.tmpdir=/state/partition1/tmpdir -Xmx4g" \
+gatk --java-options "-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Djava.io.tmpdir=./tmpdir -Xmx4g" \
     GetPileupSummaries \
     -V /home/transfer/resources/human/gnomad/gnomad.exomes.r2.0.1.sites.common.bialleleic.vcf.gz \
     -I "$seqId"_"$sampleId".bam \
     -O getpileupsummaries.table    
 
-gatk4 --java-options "-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Djava.io.tmpdir=/state/partition1/tmpdir -Xmx4g" \
+gatk --java-options "-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Djava.io.tmpdir=./tmpdir -Xmx4g" \
     CalculateContamination \
     -I getpileupsummaries.table \
     -O calculateContamination.table
 
-gatk4 --java-options "-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Djava.io.tmpdir=/state/partition1/tmpdir -Xmx4g" \
+gatk --java-options "-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Djava.io.tmpdir=./tmpdir -Xmx4g" \
     FilterMutectCalls \
     --variant "$seqId"_"$sampleId".vcf.gz \
     --contamination-table calculateContamination.table \
@@ -34,7 +35,7 @@ gatk4 --java-options "-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Djava.io.tmpdir
     --verbosity ERROR \
     --QUIET true
 
-gatk4 --java-options "-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Djava.io.tmpdir=/state/partition1/tmpdir -Xmx4g" \
+gatk --java-options "-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Djava.io.tmpdir=./tmpdir -Xmx4g" \
     CollectSequencingArtifactMetrics \
     -I "$seqId"_"$sampleId".bam \
     -O seqArtifacts \
@@ -43,7 +44,7 @@ gatk4 --java-options "-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Djava.io.tmpdir
     --VERBOSITY ERROR \
     --QUIET true
 
-gatk4 --java-options "-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Djava.io.tmpdir=/state/partition1/tmpdir -Xmx4g" \
+gatk --java-options "-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Djava.io.tmpdir=./tmpdir -Xmx4g" \
     FilterByOrientationBias \
     -AM G/T \
     -AM C/T \
