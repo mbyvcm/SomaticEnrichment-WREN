@@ -11,7 +11,6 @@ sampleId=$2
 panel=$3
 minBQS=$4
 minMQS=$5
-vendorPrimaryBed=$6
 
 gatk --java-options "-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Djava.io.tmpdir=./tmpdir -Xmx4g" \
     GetPileupSummaries \
