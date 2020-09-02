@@ -9,7 +9,7 @@ sampleId=$2
 panel=$3
 
 set +u 
-source activate VEP
+activate VEP
 set -u
 
 vep \
@@ -38,8 +38,8 @@ vep \
     --custom /home/transfer/resources/human/cosmic/b37/cosmic_78.b37.vcf.gz,COSMIC,vcf,exact,0
 
 set +u
-conda deactivate
-source activate SomaticEnrichment
+deactivate
+activate SomaticEnrichment
 set -u
 
 # index and validation
