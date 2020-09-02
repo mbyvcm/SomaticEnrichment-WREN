@@ -8,8 +8,10 @@ seqId=$1
 sampleId=$2
 panel=$3
 
+module load anaconda
+
 set +u 
-activate VEP
+source activate VEP-100
 set -u
 
 vep \
@@ -26,20 +28,20 @@ vep \
     --no_escape \
     --shift_hgvs 1 \
     --cache \
-    --cache_version 86 \
+    --cache_version 100 \
     --force_overwrite \
     --no_stats \
     --offline \
-    --dir /home/transfer/resources/human/vep-cache/refseq37_v86 \
-    --fasta /home/transfer/resources/human/vep-cache/refseq37_v86/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa \
+    --dir /home/transfer/resources/human/vep-cache/refseq37_v100 \
+    --fasta /home/transfer/resources/human/gatk/2.8/b37/human_g1k_v37.fasta \
     --species homo_sapiens \
     --refseq \
     --custom /home/transfer/resources/human/gnomad/gnomad.exomes.r2.0.1.sites.vcf.gz,GNOMAD,vcf,exact,0,AF \
     --custom /home/transfer/resources/human/cosmic/b37/cosmic_78.b37.vcf.gz,COSMIC,vcf,exact,0
 
 set +u
-deactivate
-activate SomaticEnrichment
+conda deactivate
+source activate SomaticEnrichment
 set -u
 
 # index and validation
