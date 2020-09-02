@@ -9,11 +9,12 @@ sampleId=$2
 panel=$3
 vendorPrimaryBed=$4
 
+module load anaconda
+
 if [ -d MANTA ]
 then
     rm -r MANTA
 fi
-
 
 mkdir MANTA
 

@@ -10,6 +10,8 @@ panel=$3
 pipelineName=$4
 pipelineVersion=$5
 
+module load anaconda
+
 set +u
 source activate vcf_parse
 set -u
