@@ -137,10 +137,38 @@ if [ $sampleId != 'NTC' ]; then
     ./SomaticEnrichmentLib-"$version"/manta.sh $seqId $sampleId $panel $vendorPrimaryBed
 fi
 
+# migrate data from scratch to results location
+rsync -avh  $SCRATCH_DIR $SLURM_SUBMIT_DIR
+
+cd $SLURM_SUBMIT_DIR
+
 # add samplename to run-level file if vcf detected
 if [ -e "$seqId"_"$sampleId"_filteredStrLeftAligned_annotated.vcf ]
 then
-    # copy data in scratch to results location
-    rsync -avh  $SCRATCH_DIR $SLURM_SUBMIT_DIR
-    #echo $sampleId >> ../sampleVCFs.txt
+    echo $sampleId >> ../sampleVCFs.txt    
+fi
+
+# ---------------------------------------------------------------------------------------------------------
+#  RUN LEVEL ANALYSES
+# ---------------------------------------------------------------------------------------------------------
+
+#numberSamplesInVcf=$(cat ../sampleVCFs.txt | uniq | wc -l)
+#numberSamplesInProject=$(find ../ -maxdepth 2 -mindepth 2 | grep .variables | uniq | wc -l)
+
+# only the last sample to complete SNV calling will run the following
+if [ $numberSamplesInVcf -eq $numberSamplesInProject ]
+then
+
+    # run cnv kit
+    echo "running CNVKit as $numberSamplesInVcf samples have completed SNV calling"
+    ./SomaticEnrichmentLib-"$version"/cnvkit.sh $seqId $panel $vendorPrimaryBed $version
+
+    # generate worksheets
+    ./SomaticEnrichmentLib-"$version"/make_variant_report.sh $seqId $panel
+
+    # pull all the qc data together and generate combinedQC.txt
+    ./SomaticEnrichmentLib-"$version"/compileQcReport.sh $seqId $panel
+
+else
+    echo "not all samples have completed running. Finishing process for this sample."
 fi
