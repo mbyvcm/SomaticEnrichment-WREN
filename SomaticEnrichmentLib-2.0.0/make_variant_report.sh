@@ -3,10 +3,12 @@ set -euo pipefail
 
 seqId=$1
 panel=$2
-    
-source /home/transfer/miniconda3/bin/activate VirtualHood
 
-    for i in /data/results/$seqId/$panel/*/; do
+module load anaconda
+
+source activate VirtualHood
+
+    for i in ./*/; do
         echo $i
         sampleId=$(basename $i)
 
@@ -14,7 +16,7 @@ source /home/transfer/miniconda3/bin/activate VirtualHood
             echo "skipping $sampleId worksheet"
         else
             # load sample variables
-            . /data/results/$seqId/$panel/$sampleId/"$sampleId".variables
+            . ./$sampleId/"$sampleId".variables
 
             # check that referral is set, skip if not
             if [ -z "${referral:-}" ] || [ $referral == 'null' ]; then
@@ -29,5 +31,5 @@ source /home/transfer/miniconda3/bin/activate VirtualHood
         fi
     done
 
-source /home/transfer/miniconda3/bin/deactivate
+conda deactivate
 
