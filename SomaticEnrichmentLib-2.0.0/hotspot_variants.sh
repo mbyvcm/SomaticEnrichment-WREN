@@ -13,7 +13,8 @@ pipelineVersion=$5
 module load anaconda
 
 set +u
-source activate vcf_parse
+source /home/transfer/.bashrc
+conda activate vcf_parse
 set -u
     
 mkdir -p hotspot_variants
