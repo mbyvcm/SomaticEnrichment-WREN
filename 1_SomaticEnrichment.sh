@@ -138,7 +138,7 @@ if [ $sampleId != 'NTC' ]; then
 fi
 
 # migrate data from scratch to results location
-rsync -avh  $SCRATCH_DIR $SLURM_SUBMIT_DIR
+cp -r  "$SCRATCH_DIR"/* $SLURM_SUBMIT_DIR
 
 cd $SLURM_SUBMIT_DIR
 
