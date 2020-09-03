@@ -4,7 +4,7 @@
 #SBATCH --output=SomaticEnrichment-%N-%j.output
 #SBATCH --error=SomaticEnrichment-%N-%j.error
 #SBATCH --partition=high
-#SBATCH --cpus-per-task=20
+#SBATCH --cpus-per-task=40
 #SBATCH --job-name="SomaticEnrichment"
 
 # Description: Somatic Enrichment Pipeline. Requires fastq file split by lane
@@ -138,7 +138,15 @@ if [ $sampleId != 'NTC' ]; then
 fi
 
 # migrate data from scratch to results location
-cp -r  "$SCRATCH_DIR"/* $SLURM_SUBMIT_DIR
+cp "$seqId"_"$sampleId"_filteredStrLeftAligned_annotated.vcf $SLURM_SUBMIT_DIR
+cp "$seqId"_"$sampleId".bam $SLURM_SUBMIT_DIR
+cp "$seqId"_"$sampleId".bai $SLURM_SUBMIT_DIR
+cp "$seqId"_"$sampleId"_HsMetrics.txt $SLURM_SUBMIT_DIR
+cp "$seqId"_"$sampleId"_InsertMetrics.txt $SLURM_SUBMIT_DIR
+cp "$sampleId"_VariantReport.txt $SLURM_SUBMIT_DIR
+cp -r hotspot_variants $SLURM_SUBMIT_DIR
+cp -r MANTA $SLURM_SUBMIT_DIR
+cp -r FASTQC $SLURM_SUBMIT_DIR
 
 cd $SLURM_SUBMIT_DIR
 
