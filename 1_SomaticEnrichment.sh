@@ -5,7 +5,6 @@
 #SBATCH --error=SomaticEnrichment-%N-%j.error
 #SBATCH --partition=high
 #SBATCH --cpus-per-task=40
-#SBATCH --job-name="SomaticEnrichment"
 
 # Description: Somatic Enrichment Pipeline. Requires fastq file split by lane
 # Author:      AWMGS
