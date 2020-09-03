@@ -18,6 +18,11 @@ version="2.0.0"
 # load sample variables
 . *.variables
 
+# copy library resources
+pipeline_dir=/data/diagnostics/pipelines/"$pipelineName"/"$pipelineName"-"$pipelineVersion"
+cp -r "$pipeline_dir"/SomaticEnrichmentLib-"$version" .
+cp "$pipeline_dir"/"$panel"/"$panel".variables .
+
 # setup local scratch
 SCRATCH_DIR=/localscratch/"$SLURM_JOB_ID"/"$seqId"/"$worklistId"/"$panel"/"$sampleId"
 mkdir -p "$SCRATCH_DIR" && cd "$SCRATCH_DIR"
@@ -27,11 +32,6 @@ mkdir tmpdir
 
 # link fastq / variables files to scratch
 ln -s $SLURM_SUBMIT_DIR/* .
-
-# copy library resources
-pipeline_dir=/data/diagnostics/pipelines/"$pipelineName"/"$pipelineName"-"$pipelineVersion"
-cp -r "$pipeline_dir"/SomaticEnrichmentLib-"$version" .
-cp "$pipeline_dir"/"$panel"/"$panel".variables .
 
 # load pipeline variables
 . "$panel".variables
@@ -45,6 +45,7 @@ module purge
 module load anaconda
 source activate SomaticEnrichment
 
+# catch fails early and terminate
 set -euo pipefail
 
 # define fastq variables
