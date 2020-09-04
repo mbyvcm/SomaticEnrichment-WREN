@@ -17,18 +17,21 @@ FASTA=/home/transfer/resources/human/gatk/2.8/b37/human_g1k_v37.fasta
 # navigate to run-level directory
 cd ../
 
+# samples for CNV analysis
 samples=$(cat sampleVCFs.txt | grep -v "NTC")
+
+# bam files
 bams=$(for s in $samples; do echo ./$s/"$seqId"_"$s".bam ;done)
 
 module load anaconda
 
 set +u
 source /home/transfer/.bashrc
-source activate cnvkit
+conda activate cnvkit
 set -u
 
 # 1. RUN FOR ALL SAMPLES IN RUN
-cnvkit autobin $bams -t $vendorCaptureBed -g /home/transfer/resources/human/cnvkit/access-excludes.hg19.bed --annotate /home/transfer/resources/human/cnvkit/refFlat.txt 
+cnvkit.py autobin $bams -t $vendorCaptureBed -g /home/transfer/resources/human/cnvkit/access-excludes.hg19.bed --annotate /home/transfer/resources/human/cnvkit/refFlat.txt 
 
 
 # ---------------------------------------------------------------------------------------------------------
@@ -45,12 +48,12 @@ do
     echo $sample
 
     # queue 1_cnvkit
-    sbatch --export=seqId=$seqId,panel=$panel,sample=$sample /data/diagnostics/pipelines/SomaticEnrichment/SomaticEnrichment-"$version"/SomaticEnrichmentLib-"$version"/1_cnvkit.sh
+    sbatch --output="./$sample/CNVKit-1-%N-%j.output" --error "./$sample/CNVKit-1-%N-%j.error" --export=seqId="$seqId",panel="$panel",sample="$sample" /data/diagnostics/pipelines/SomaticEnrichment/SomaticEnrichment-2.0.0/SomaticEnrichmentLib-"$version"/1_cnvkit.sh
 
     # make cnvkit directory - needed for make_cnvkit_arrays python script downstream
     mkdir -p ./$sample/CNVKit/
 done
-exit
+
 # check that cnvkit script 1 have all finished before next step
 numberOfProcessedCnvFiles=0
 numberOfInputFiles=$(cat sampleVCFs.txt | grep -v 'NTC' | wc -l)
@@ -59,7 +62,7 @@ until [ $numberOfProcessedCnvFiles -eq $numberOfInputFiles ]
 do
     echo "checking if CNVs are processed"
     sleep 2m
-    numberOfProcessedCnvFiles=$(wc -l < /data/results/$seqId/$panel/samplesCNVKit_script1.txt)
+    numberOfProcessedCnvFiles=$(wc -l < samplesCNVKit_script1.txt)
 done
 
 
@@ -68,10 +71,10 @@ done
 # ---------------------------------------------------------------------------------------------------------
 
 # initialise file to keep track of which samples have already been processed with CNVKit script 2 - wipe file clean if it already exists
-> /data/results/$seqId/$panel/samplesCNVKit_script2.txt
+> samplesCNVKit_script2.txt
 
 # make tc and atc array for all samples
-/home/transfer/miniconda3/bin/python3 /data/diagnostics/pipelines/SomaticEnrichment/SomaticEnrichment-"$version"/SomaticEnrichmentLib-"$version"/make_cnvkit_arrays.py $seqId $panel
+python /data/diagnostics/pipelines/SomaticEnrichment/SomaticEnrichment-"$version"/SomaticEnrichmentLib-"$version"/make_cnvkit_arrays.py $seqId $panel
 
 # launch cnvkit script 2
 for i in ${samples[@]}
@@ -79,24 +82,24 @@ do
     test_sample=$i
     normal_samples=${samples[@]}
 
-    cp /data/results/$seqId/$panel/"$test_sample".targetcoverage.cnn /data/results/$seqId/$panel/$test_sample/CNVKit/
-    cp /data/results/$seqId/$panel/"$test_sample".antitargetcoverage.cnn /data/results/$seqId/$panel/$test_sample/CNVKit/
-    cp /data/results/$seqId/$panel/*.target.bed /data/results/$seqId/$panel/$test_sample/CNVKit/
-    cp /data/results/$seqId/$panel/*.antitarget.bed /data/results/$seqId/$panel/$test_sample/CNVKit/
+    cp "$test_sample".targetcoverage.cnn ./$test_sample/CNVKit/
+    cp "$test_sample".antitargetcoverage.cnn ./$test_sample/CNVKit/
+    cp *.target.bed ./$test_sample/CNVKit/
+    cp *.antitarget.bed ./$test_sample/CNVKit/
 
-    qsub -o ./$i/ -e ./$i/ /data/diagnostics/pipelines/SomaticEnrichment/SomaticEnrichment-"$version"/SomaticEnrichmentLib-"$version"/2_cnvkit.sh  -F "$cnvkit $seqId $panel $test_sample $version"
+    sbatch --output=./$test_sample/CNVKit-2-%N-%j.output --error=./$test_sample/CNVKit-2-%N-%j.error --export=seqId="$seqId",panel="$panel",test_sample="$test_sample",version="$version" /data/diagnostics/pipelines/SomaticEnrichment/SomaticEnrichment-"$version"/SomaticEnrichmentLib-"$version"/2_cnvkit.sh
 
 done
 
 # check that cnvkit script 2 have all finished before next step
 numberOfProcessedCnvFiles_script2=0
-numberOfInputFiles=$(cat /data/results/$seqId/$panel/sampleVCFs.txt | grep -v 'NTC' | wc -l)
+numberOfInputFiles=$(cat sampleVCFs.txt | grep -v 'NTC' | wc -l)
 
 until [ $numberOfProcessedCnvFiles_script2 -eq $numberOfInputFiles ]
 do
     echo "checking if hotspot CNVs are processed"
     sleep 2m
-    numberOfProcessedCnvFiles_script2=$(wc -l < /data/results/$seqId/$panel/samplesCNVKit_script2.txt)
+    numberOfProcessedCnvFiles_script2=$(wc -l < samplesCNVKit_script2.txt)
 done
 
 
@@ -105,7 +108,7 @@ done
 # ---------------------------------------------------------------------------------------------------------
 
 # combine CNV calls with 1p19q calls for glioma and tumour panels
-for sample in $(cat /data/results/$seqId/$panel/sampleVCFs.txt | grep -v 'NTC')
+for sample in $(cat sampleVCFs.txt | grep -v 'NTC')
 do
-    /home/transfer/miniconda3/bin/python3 /data/diagnostics/pipelines/SomaticEnrichment/SomaticEnrichment-"$version"/SomaticEnrichmentLib-"$version"/combine_1p19q.py $seqId $sample
+    python /data/diagnostics/pipelines/SomaticEnrichment/SomaticEnrichment-"$version"/SomaticEnrichmentLib-"$version"/combine_1p19q.py $seqId $sample
 done
