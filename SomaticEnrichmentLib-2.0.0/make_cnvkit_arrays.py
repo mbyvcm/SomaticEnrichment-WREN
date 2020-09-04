@@ -3,7 +3,8 @@ import sys
 # make filpaths for results folder and sampleVCFs file (which contains a list of all samples)
 run_id = sys.argv[1]
 panel = sys.argv[2]
-run_folder = '/data/results/{}/{}'.format(run_id, panel)
+#run_folder = '/data/results/{}/{}'.format(run_id, panel)
+run_folder = './'
 samplevcfs_filepath = '{}/sampleVCFs.txt'.format(run_folder)
 
 
