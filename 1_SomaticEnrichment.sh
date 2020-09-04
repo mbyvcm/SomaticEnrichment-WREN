@@ -139,6 +139,7 @@ fi
 
 # migrate data from scratch to results location
 cp "$seqId"_"$sampleId"_filteredStrLeftAligned_annotated.vcf $SLURM_SUBMIT_DIR
+cp "$seqId"_"$sampleId"_filteredStr.vcf.gz $SLURM_SUBMIT_DIR
 cp "$seqId"_"$sampleId".bam $SLURM_SUBMIT_DIR
 cp "$seqId"_"$sampleId".bai $SLURM_SUBMIT_DIR
 cp "$seqId"_"$sampleId"_HsMetrics.txt $SLURM_SUBMIT_DIR
