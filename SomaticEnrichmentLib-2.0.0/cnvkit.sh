@@ -18,9 +18,12 @@ FASTA=/home/transfer/resources/human/gatk/2.8/b37/human_g1k_v37.fasta
 cd ../
 
 samples=$(cat sampleVCFs.txt | grep -v "NTC")
-bams=$(for s in $samples; do echo $PWD/$s/"$seqId"_"$s".bam ;done)
+bams=$(for s in $samples; do echo ./$s/"$seqId"_"$s".bam ;done)
+
+module load anaconda
 
 set +u
+source /home/transfer/.bashrc
 source activate cnvkit
 set -u
 
@@ -33,7 +36,7 @@ cnvkit autobin $bams -t $vendorCaptureBed -g /home/transfer/resources/human/cnvk
 # ---------------------------------------------------------------------------------------------------------
 
 # initialise file to keep track of which samples have already been processed with CNVKit script 1 - wipe file clean if it already exists
-> "$runDir"/samplesCNVKit_script1.txt
+> samplesCNVKit_script1.txt
 
 # schedule each sample to be processed with 1_cnvkit.sh
 for i in ${samples[@]}
@@ -42,12 +45,12 @@ do
     echo $sample
 
     # queue 1_cnvkit
-    sbatch -o ./$i/ -e ./$i/ /data/diagnostics/pipelines/SomaticEnrichment/SomaticEnrichment-"$version"/SomaticEnrichmentLib-"$version"/1_cnvkit.sh -F "$cnvkit $seqId $panel $sample"
+    sbatch --export=seqId=$seqId,panel=$panel,sample=$sample /data/diagnostics/pipelines/SomaticEnrichment/SomaticEnrichment-"$version"/SomaticEnrichmentLib-"$version"/1_cnvkit.sh
 
     # make cnvkit directory - needed for make_cnvkit_arrays python script downstream
-    mkdir -p $runDir/$sample/CNVKit/
+    mkdir -p ./$sample/CNVKit/
 done
-
+exit
 # check that cnvkit script 1 have all finished before next step
 numberOfProcessedCnvFiles=0
 numberOfInputFiles=$(cat sampleVCFs.txt | grep -v 'NTC' | wc -l)
