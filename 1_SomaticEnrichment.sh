@@ -18,6 +18,9 @@ version="2.0.0"
 # load sample variables
 . *.variables
 
+# number of samples required later for CNV calling
+numberSamplesInProject=$(find ../ -maxdepth 2 -mindepth 2 | grep .variables | uniq | wc -l)
+
 # copy library resources
 pipeline_dir=/data/diagnostics/pipelines/"$pipelineName"/"$pipelineName"-"$pipelineVersion"
 cp -r "$pipeline_dir"/SomaticEnrichmentLib-"$version" .
@@ -161,8 +164,7 @@ fi
 #  RUN LEVEL ANALYSES
 # ---------------------------------------------------------------------------------------------------------
 
-#numberSamplesInVcf=$(cat ../sampleVCFs.txt | uniq | wc -l)
-#numberSamplesInProject=$(find ../ -maxdepth 2 -mindepth 2 | grep .variables | uniq | wc -l)
+numberSamplesInVcf=$(cat ../sampleVCFs.txt | uniq | wc -l)
 
 # only the last sample to complete SNV calling will run the following
 if [ $numberSamplesInVcf -eq $numberSamplesInProject ]
