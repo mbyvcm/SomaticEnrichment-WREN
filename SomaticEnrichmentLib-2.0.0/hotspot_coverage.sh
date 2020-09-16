@@ -1,5 +1,4 @@
 #!/bin/bash
-set -euo pipefail
 
 # Christopher Medway AWMGS
 # Performs all the coverage calculation across the panel and hotspot regions at given depth(s)
@@ -15,7 +14,13 @@ padding=$8
 minBQS=$9
 minMQS=${10}
 
-JAVA_OPTIONS="-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Djava.io.tmpdir=./tmpdir -Xmx2g"
+. ~/.bashrc
+. "$panel".variables
+module load anaconda
+conda activate CoverageCalculatorPy
+
+# catch errors early
+set -euo pipefail
 
 # minimumCoverage to array COV
 IFS=',' read -r -a COV <<< "${minimumCoverage}"
@@ -25,17 +30,18 @@ bedtools \
     slop \
     -i $vendorPrimaryBed \
     -b $padding \
-    -g /data/diagnostics/apps/bedtools/bedtools-v2.29.1/genomes/human.hg19.genome > vendorPrimaryBed_100pad.bed
+    -g /data/diagnostics/apps/bedtools/bedtools-v2.26.0/genomes/human.hg19.genome > vendorPrimaryBed_100pad.bed
 
 # generate per-base coverage: variant detection sensitivity
-gatk --java-options "-XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10 -Djava.io.tmpdir=./tmpdir -Xmx4g" \
-    DepthOfCoverage \
-    -R /home/transfer/resources/human/gatk/2.8/b37/human_g1k_v37.fasta \
+gatk \
+    -T DepthOfCoverage \
+    -R /data/resources/human/gatk/2.8/b37/human_g1k_v37.fasta \
     -I "$seqId"_"$sampleId".bam \
     -L vendorPrimaryBed_100pad.bed \
-    -O "$seqId"_"$sampleId"_DepthOfCoverage \
-    --count-type COUNT_FRAGMENTS \
-    --min-base-quality $minBQS \
+    -o "$seqId"_"$sampleId"_DepthOfCoverage \
+    --countType COUNT_FRAGMENTS \
+    --minMappingQuality $minMQS \
+    --minBaseQuality $minBQS \
     -ct ${COV[0]} \
     --omitLocusTable \
     -rf MappingQualityUnavailable \
@@ -62,8 +68,6 @@ do
 
     mkdir -p $hscov_outdir
 
-    source activate CoverageCalculatorPy
-
     for bedFile in /data/diagnostics/pipelines/"$pipelineName"/"$pipelineName"-"$pipelineVersion"/$panel/hotspot_coverage/*.bed; do
 
         name=$(echo $(basename $bedFile) | cut -d"." -f1)
@@ -76,7 +80,7 @@ do
             --padding 0 \
             --groupfile /data/diagnostics/pipelines/$pipelineName/$pipelineName-$pipelineVersion/$panel/hotspot_coverage/"$name".groups \
             --outname "$sampleId"_"$name" \
-            --outdir $hscov_outdir
+            --outdir "$hscov_outdir/"
 
         # remove header from gaps file
         if [[ $(wc -l < $hscov_outdir/"$sampleId"_"$name".gaps) -eq 1 ]]; then
@@ -92,11 +96,6 @@ do
 
     done
 
-    source deactivate
-
-
-    # add hgvs nomenclature to gaps
-    source activate bed2hgvs
 
     for gapsFile in $hscov_outdir/*genescreen.nohead.gaps $hscov_outdir/*hotspots.nohead.gaps; do
 
@@ -112,7 +111,6 @@ do
         rm $hscov_outdir/"$name".nohead.gaps
     done
     
-    source deactivate
 
     # combine all total coverage files
     if [ -f $hscov_outdir/"$sampleId"_coverage.txt ]; then rm $hscov_outdir/"$sampleId"_coverage.txt; fi

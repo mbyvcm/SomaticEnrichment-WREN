@@ -1,5 +1,4 @@
 #!/bin/bash
-set -euo pipefail
 
 # Christopher Medway AWMGS
 # variant annotation with VEP
@@ -8,11 +7,14 @@ seqId=$1
 sampleId=$2
 panel=$3
 
+# load conda env
+. ~/.bashrc
+. "$panel".variables
 module load anaconda
+conda activate $conda_vep
 
-set +u 
-source activate VEP-100
-set -u
+# catch errors early
+set -euo pipefail
 
 vep \
     --input_file "$seqId"_"$sampleId"_filteredStrLeftAligned.vcf \
@@ -41,7 +43,7 @@ vep \
 
 set +u
 conda deactivate
-source activate SomaticEnrichment
+conda activate $conda_SE
 set -u
 
 # index and validation

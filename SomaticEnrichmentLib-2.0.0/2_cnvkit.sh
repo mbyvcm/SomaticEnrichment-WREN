@@ -7,15 +7,16 @@
 
 cd "$SLURM_SUBMIT_DIR"
 
+# load anaconda env
+. "$panel".variables
+. /home/transfer/.bashrc
 module load anaconda
-source /home/transfer/.bashrc
-conda activate cnvkit
+conda activate $conda_cnvkit
 
+# catch errors early
 set -euo pipefail
 
-
 FASTA=/home/transfer/resources/human/gatk/2.8/b37/human_g1k_v37.fasta
-
 odir=./$test_sample/CNVKit/ 
 
 echo "generating references"
@@ -25,7 +26,7 @@ echo "fixing ratios"
 cnvkit.py fix "$test_sample".targetcoverage.cnn "$test_sample".antitargetcoverage.cnn "$odir"/"$test_sample".reference.cnn -o "$odir"/"$test_sample".cnr
 
 set +u
-conda activate SomaticEnrichment
+conda activate $conda_SE
 set -u
 
 echo "selecting common germline variants for CNV backbone"

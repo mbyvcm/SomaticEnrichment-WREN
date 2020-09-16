@@ -19,7 +19,7 @@ version="2.0.0"
 . *.variables
 
 # number of samples required later for CNV calling
-numberSamplesInProject=$(find ../ -maxdepth 2 -mindepth 2 | grep .variables | uniq | wc -l)
+numberSamplesInProject=$(find ../ -maxdepth 1 -mindepth 1 -type d | uniq | wc -l)
 
 # copy library resources
 pipeline_dir=/data/diagnostics/pipelines/"$pipelineName"/"$pipelineName"-"$pipelineVersion"
@@ -46,7 +46,8 @@ vendorPrimaryBed=/data/diagnostics/pipelines/"$pipelineName"/"$pipelineName"-"$p
 # activate conda env
 module purge
 module load anaconda
-source activate SomaticEnrichment
+. ~/.bashrc
+conda activate $conda_SE
 
 # catch fails early and terminate
 set -euo pipefail
@@ -106,17 +107,17 @@ mv "$seqId"_"$sampleId"_rmdup.bai "$seqId"_"$sampleId".bai
     $minMQS
 
 # coverage calculations
-#./SomaticEnrichmentLib-"$version"/hotspot_coverage.sh \
-#    $seqId \
-#    $sampleId \
-#    $panel \
-#    $pipelineName \
-#    $pipelineVersion \
-#    $minimumCoverage \
-#    $vendorPrimaryBed \
-#    $padding \
-#    $minBQS \
-#    $minMQS
+./SomaticEnrichmentLib-"$version"/hotspot_coverage.sh \
+    $seqId \
+    $sampleId \
+    $panel \
+    $pipelineName \
+    $pipelineVersion \
+    $minimumCoverage \
+    $vendorPrimaryBed \
+    $padding \
+    $minBQS \
+    $minMQS
 
 # variant calling
 ./SomaticEnrichmentLib-"$version"/mutect2.sh $seqId $sampleId $pipelineName $version $panel $padding $minBQS $minMQS $vendorPrimaryBed
@@ -142,14 +143,16 @@ fi
 
 # migrate data from scratch to results location
 cp "$seqId"_"$sampleId"_filteredStrLeftAligned_annotated.vcf $SLURM_SUBMIT_DIR
+if [ -e "$seqId"_"$sampleId"_filteredStrLeftAligned_annotated.vcf.idx ]; then cp "$seqId"_"$sampleId"_filteredStrLeftAligned_annotated.vcf.idx $SLURM_SUBMIT_DIR; fi
 cp "$seqId"_"$sampleId"_filteredStr.vcf.gz $SLURM_SUBMIT_DIR
+cp "$seqId"_"$sampleId"_filteredStr.vcf.gz.tbi $SLURM_SUBMIT_DIR
 cp "$seqId"_"$sampleId".bam $SLURM_SUBMIT_DIR
 cp "$seqId"_"$sampleId".bai $SLURM_SUBMIT_DIR
 cp "$seqId"_"$sampleId"_HsMetrics.txt $SLURM_SUBMIT_DIR
 cp "$seqId"_"$sampleId"_InsertMetrics.txt $SLURM_SUBMIT_DIR
 cp "$sampleId"_VariantReport.txt $SLURM_SUBMIT_DIR
 cp -r hotspot_variants $SLURM_SUBMIT_DIR
-cp -r MANTA $SLURM_SUBMIT_DIR
+if [ -d MANTA ]; then cp -r MANTA $SLURM_SUBMIT_DIR; fi
 cp -r FASTQC $SLURM_SUBMIT_DIR
 
 cd $SLURM_SUBMIT_DIR

@@ -1,5 +1,4 @@
 #!/bin/bash
-set -euo pipefail
 
 # Description: wrapper script to two further CNVKit scripts (1_cnvkit.sh and 2_cnvkit.sh)
 # Author:      Christopher Medway  
@@ -14,21 +13,23 @@ version=$4
 # resources
 FASTA=/home/transfer/resources/human/gatk/2.8/b37/human_g1k_v37.fasta
 
+# load conda env
+. "$panel".variables
+. ~/.bashrc
+module load anaconda
+conda activate $conda_cnvkit
+
+# catch errors early
+set -euo pipefail
+
 # navigate to run-level directory
-cd ../
+cp "$panel".variables ../ && cd ../
 
 # samples for CNV analysis
 samples=$(cat sampleVCFs.txt | grep -v "NTC")
 
 # bam files
 bams=$(for s in $samples; do echo ./$s/"$seqId"_"$s".bam ;done)
-
-module load anaconda
-
-set +u
-source /home/transfer/.bashrc
-conda activate cnvkit
-set -u
 
 # 1. RUN FOR ALL SAMPLES IN RUN
 cnvkit.py autobin $bams -t $vendorCaptureBed -g /home/transfer/resources/human/cnvkit/access-excludes.hg19.bed --annotate /home/transfer/resources/human/cnvkit/refFlat.txt 

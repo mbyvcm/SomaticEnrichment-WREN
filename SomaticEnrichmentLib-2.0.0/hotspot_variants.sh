@@ -1,5 +1,4 @@
 #!/bin/bash
-set -euo pipefail
 
 # Description: generate custom variant report given bedfile and vcffile
 # Author: Christopher Medway, AWMGL
@@ -10,12 +9,13 @@ panel=$3
 pipelineName=$4
 pipelineVersion=$5
 
-module load anaconda
-
-set +u
+# load conda env
 source /home/transfer/.bashrc
+module load anaconda
 conda activate vcf_parse
-set -u
+
+# catch errors early
+set -euo pipefail
     
 mkdir -p hotspot_variants
 

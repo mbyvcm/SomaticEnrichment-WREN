@@ -1,5 +1,4 @@
 #!/bin/bash
-set -euo pipefail
 
 # Arthor: Christopjher Medway <christopher.medway@wales.nhs.uk>
 # Description: Run MANTA over each sample for SV detection in tumor
@@ -9,8 +8,7 @@ sampleId=$2
 panel=$3
 vendorPrimaryBed=$4
 
-module load anaconda
-
+# check if manta dir exists
 if [ -d MANTA ]
 then
     rm -r MANTA
@@ -18,9 +16,14 @@ fi
 
 mkdir MANTA
 
-set +u
-source activate manta
-set -u
+# load conda env
+. ~/.bashrc
+. "$panel".variables
+module load anaconda
+conda activate $conda_manta
+
+# catch errors early
+set -euo pipefail
 
 cat $vendorPrimaryBed | bgzip > MANTA/callRegions.bed.gz
 tabix -p bed MANTA/callRegions.bed.gz
