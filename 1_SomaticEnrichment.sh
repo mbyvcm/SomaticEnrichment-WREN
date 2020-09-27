@@ -137,7 +137,7 @@ fi
 ./SomaticEnrichmentLib-"$version"/hotspot_variants.sh $seqId $sampleId $panel $pipelineName $pipelineVersion
 
 # run manta for all samples except NTC
-if [ $sampleId != 'NTC' ]; then 
+if [[ $sampleId != *'NTC'* ]]; then 
     ./SomaticEnrichmentLib-"$version"/manta.sh $seqId $sampleId $panel $vendorPrimaryBed
 fi
 
@@ -152,6 +152,7 @@ cp "$seqId"_"$sampleId"_HsMetrics.txt $SLURM_SUBMIT_DIR
 cp "$seqId"_"$sampleId"_InsertMetrics.txt $SLURM_SUBMIT_DIR
 cp "$sampleId"_VariantReport.txt $SLURM_SUBMIT_DIR
 cp -r hotspot_variants $SLURM_SUBMIT_DIR
+cp -r hotspot_coverage_* $SLURM_SUBMIT_DIR
 if [ -d MANTA ]; then cp -r MANTA $SLURM_SUBMIT_DIR; fi
 cp -r FASTQC $SLURM_SUBMIT_DIR
 
