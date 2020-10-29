@@ -96,20 +96,29 @@ do
 
     done
 
+    set +u
+    conda activate bed2hgvs
+    set -u
 
     for gapsFile in $hscov_outdir/*genescreen.nohead.gaps $hscov_outdir/*hotspots.nohead.gaps; do
 
         name=$(echo $(basename $gapsFile) | cut -d"." -f1)
         echo $name
 
-        python /data/diagnostics/apps/bed2hgvs/bed2hgvs-0.1.1/bed2hgvs.py \
-            --config /data/diagnostics/apps/bed2hgvs/bed2hgvs-0.1.1/configs/cluster.yaml \
-            --input $gapsFile \
-            --output $hscov_outdir/"$name".gaps \
-            --transcript_map /data/diagnostics/pipelines/$pipelineName/"$pipelineName"-"$pipelineVersion"/$panel/RochePanCancer_PreferredTranscripts.txt
+        Rscript /data/diagnostics/apps/bed2hgvs/bed2hgvs-v0.1.0/bed2hgvs.R \
+            --bedfile $gapsFile \
+            --outname "$name".gaps \
+            --outdir  $hscov_outdir \
+            --preferred_tx /data/diagnostics/pipelines/$pipelineName/"$pipelineName"-"$pipelineVersion"/$panel/RochePanCancer_PreferredTranscripts.txt \
+            --refseqdb /data/diagnostics/apps/bed2hgvs/bed2hgvs-v0.1.0/data/ucsc_hg19_ncbiRefSeq.sqlite
 
         rm $hscov_outdir/"$name".nohead.gaps
     done
+
+    set +u
+    conda deactivate
+    conda activate CoverageCalculatorPy
+    set -u
     
 
     # combine all total coverage files
