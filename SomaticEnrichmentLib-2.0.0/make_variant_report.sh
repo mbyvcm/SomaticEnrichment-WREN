@@ -1,16 +1,18 @@
 #!/bin/bash
-set -euo pipefail
 
 seqId=$1
 panel=$2
 
+. ~/.bashrc
 module load anaconda
-
 source activate VirtualHood
 
+set -euo pipefail
+
     for i in ./*/; do
-        echo $i
+       
         sampleId=$(basename $i)
+	echo $sampleId
 
         if [ $sampleId == 'NTC' ]; then
             echo "skipping $sampleId worksheet"

@@ -11,7 +11,7 @@ panel=$2
 # loop through each sample and make QC file
 for sampleId in $(cat ../sampleVCFs.txt); do
 
-    dir=/data/results/$seqId/$panel/$sampleId
+    dir=/data/output/results/$seqId/$panel/$sampleId
 
     if [ -e $dir/"$seqId"_"$sampleId"_qc.txt ]; then rm $dir/"$seqId"_"$sampleId"_qc.txt; fi
 
@@ -71,4 +71,4 @@ done
 
 
 # generate combinedQC.txt
-python /data/diagnostics/scripts/merge_qc_files.py /data/results/$seqId/$panel/
+python /data/diagnostics/scripts/merge_qc_files.py /data/output/results/$seqId/$panel/
