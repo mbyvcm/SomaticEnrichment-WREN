@@ -150,7 +150,10 @@ cp "$seqId"_"$sampleId".bam $SLURM_SUBMIT_DIR
 cp "$seqId"_"$sampleId".bai $SLURM_SUBMIT_DIR
 cp "$seqId"_"$sampleId"_HsMetrics.txt $SLURM_SUBMIT_DIR
 cp "$seqId"_"$sampleId"_InsertMetrics.txt $SLURM_SUBMIT_DIR
-cp "$sampleId"_VariantReport.txt $SLURM_SUBMIT_DIR
+cp "$seqId"_"$sampleId"_markDuplicatesMetrics.txt $SLURM_SUBMIT_DIR
+cp "$seqId"_"$sampleId"_DepthOfCoverage.sample_summary $SLURM_SUBMIT_DIR
+cp "$seqId"_"$sampleId"_VariantReport.txt $SLURM_SUBMIT_DIR
+cp "$seqId"_"$sampleId"_AlignmentSummaryMetrics.txt $SLURM_SUBMIT_DIR
 cp -r hotspot_variants $SLURM_SUBMIT_DIR
 cp -r hotspot_coverage_* $SLURM_SUBMIT_DIR
 if [ -d MANTA ]; then cp -r MANTA $SLURM_SUBMIT_DIR; fi
