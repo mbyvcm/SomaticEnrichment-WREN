@@ -2,6 +2,7 @@
 
 seqId=$1
 panel=$2
+sample=$3
 
 . ~/.bashrc
 module load anaconda
@@ -9,12 +10,14 @@ source activate VirtualHood
 
 set -euo pipefail
 
+cd ../
+
     for i in ./*/; do
        
         sampleId=$(basename $i)
 	echo $sampleId
 
-        if [ $sampleId == 'NTC' ]; then
+        if [ $sampleId == 'NTC' ] || [ $sampleId == 'tmpdir' ]; then
             echo "skipping $sampleId worksheet"
         else
             # load sample variables
@@ -32,6 +35,8 @@ set -euo pipefail
             fi
         fi
     done
+
+cd $sample
 
 conda deactivate
 

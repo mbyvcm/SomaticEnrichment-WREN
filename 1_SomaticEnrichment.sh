@@ -182,8 +182,7 @@ then
     ./SomaticEnrichmentLib-"$version"/cnvkit.sh $seqId $panel $vendorPrimaryBed $version
 
     # generate worksheets
-    cd ../
-    ./SomaticEnrichmentLib-"$version"/make_variant_report.sh $seqId $panel
+    ./SomaticEnrichmentLib-"$version"/make_variant_report.sh $seqId $panel $sampleId
 
     # pull all the qc data together and generate combinedQC.txt
     ./SomaticEnrichmentLib-"$version"/compileQcReport.sh $seqId $panel
