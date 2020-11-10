@@ -7,11 +7,10 @@ set -euo pipefail
 seqId=$1
 panel=$2
 
-
 # loop through each sample and make QC file
-for sampleId in $(cat ../sampleVCFs.txt); do
+for sampleId in $(cat sampleVCFs.txt); do
 
-    dir=/data/output/results/$seqId/$panel/$sampleId
+    dir=/$PWD/$sampleId
 
     if [ -e $dir/"$seqId"_"$sampleId"_qc.txt ]; then rm $dir/"$seqId"_"$sampleId"_qc.txt; fi
 
@@ -49,17 +48,6 @@ for sampleId in $(cat ../sampleVCFs.txt); do
         fi
     done
 
-    # Sex check removed as it was unstable. 
-    # sex check
-    # this file will not be avilable for NTC
-    #if [ $sampleId == "NTC" ]; then
-    #    ObsSex='Null'
-    #elif [ ! -e /data/results/$seqId/$panel/$sampleId/CNVKit/*.sex ]; then
-    #    ObsSex='Unknown'
-    #else
-    #    ObsSex=$(cat /data/results/$seqId/$panel/$sampleId/CNVKit/*.sex | grep .cnr | cut -f2)
-    #fi
-
     # keeping placeholder sex variable in report
     ObsSex='Unknown'
 
@@ -69,6 +57,5 @@ for sampleId in $(cat ../sampleVCFs.txt); do
 
 done
 
-
 # generate combinedQC.txt
-python /data/diagnostics/scripts/merge_qc_files.py /data/output/results/$seqId/$panel/
+python /data/diagnostics/scripts/merge_qc_files.py $PWD
