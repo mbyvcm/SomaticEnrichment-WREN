@@ -1,16 +1,16 @@
 #!/bin/bash
 
-seqId=$1
-panel=$2
-sample=$3
+# only required to reinstate location script executed from
+sample=$1
 
 . ~/.bashrc
 module load anaconda
 source activate VirtualHood
 
-set -euo pipefail
-
+# navigate to run level
 cd ../
+
+set -euo pipefail
 
     for i in ./*/; do
        
@@ -28,14 +28,21 @@ cd ../
                 echo "$sampleId referral reason not set, skipping sample"
             else
                 echo "$sampleId referral - $referral"
-                python /data/diagnostics/apps/VirtualHood/VirtualHood-1.2.0/panCancer_report.py $seqId $sampleId $worklistId $referral
+                python /data/diagnostics/apps/VirtualHood/VirtualHood-1.3.0/panCancer_report.py \
+			--runid $seqId \
+			--sampleid $sampleId \
+			--worksheet $worklistId \
+			--referral $referral \
+			--path /data/output/results/$seqId/$panel/ \
+			--artefacts /data/temp/artefacts_lists/
 
                 # unset variable to make sure if doesn't carry over to next sample
-                unset $referral
+                unset referral sampleId seqId worklistId
             fi
         fi
     done
 
+# return to original location before exit
 cd $sample
 
 conda deactivate
