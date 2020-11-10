@@ -33,7 +33,7 @@ set -euo pipefail
 			--sampleid $sampleId \
 			--worksheet $worklistId \
 			--referral $referral \
-			--path /data/output/results/$seqId/$panel/ \
+			--path "$PWD"/ \
 			--artefacts /data/temp/artefacts_lists/
 
                 # unset variable to make sure if doesn't carry over to next sample
