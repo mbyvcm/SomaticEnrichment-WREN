@@ -111,5 +111,5 @@ done
 # combine CNV calls with 1p19q calls for glioma and tumour panels
 for sample in $(cat sampleVCFs.txt | grep -v 'NTC')
 do
-    python /data/diagnostics/pipelines/SomaticEnrichment/SomaticEnrichment-"$version"/SomaticEnrichmentLib-"$version"/combine_1p19q.py $seqId $sample
+    python ./$sample/SomaticEnrichmentLib-"$version"/combine_1p19q.py $seqId $sample "$PWD"/"$sample"
 done

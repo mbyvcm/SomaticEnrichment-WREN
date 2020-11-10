@@ -185,7 +185,7 @@ then
     cd ../
 
     # generate worksheets
-    ./$sampleId/SomaticEnrichmentLib-"$version"/make_variant_report.sh $seqId $panel $sampleId
+    ./$sampleId/SomaticEnrichmentLib-"$version"/make_variant_report.sh
 
     # pull all the qc data together and generate combinedQC.txt
     ./$sampleId/SomaticEnrichmentLib-"$version"/compileQcReport.sh $seqId $panel

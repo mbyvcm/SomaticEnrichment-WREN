@@ -16,7 +16,7 @@ Filters 1p19q results and generates variant report
 # load in variables and make filepath
 seq_id = sys.argv[1]
 sample = sys.argv[2]
-path = '/data/output/results/{}/RochePanCancer/{}'.format(seq_id, sample)
+path = sys.argv[3]
 
 # path to input files
 seg_file = '{}/CNVKit/{}.segmetrics.cns'.format(path, sample)
