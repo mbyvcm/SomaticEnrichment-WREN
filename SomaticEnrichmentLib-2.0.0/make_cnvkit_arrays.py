@@ -4,7 +4,7 @@ import sys
 run_id = sys.argv[1]
 panel = sys.argv[2]
 #run_folder = '/data/results/{}/{}'.format(run_id, panel)
-run_folder = './'
+run_folder = '.'
 samplevcfs_filepath = '{}/sampleVCFs.txt'.format(run_folder)
 
 
@@ -13,7 +13,7 @@ all_samples = []
 with open(samplevcfs_filepath) as samples_file:
     for line in samples_file:
         sample = line.rstrip()
-        if sample != 'NTC':
+        if 'NTC' not in sample:
             all_samples.append(sample)
 
 
