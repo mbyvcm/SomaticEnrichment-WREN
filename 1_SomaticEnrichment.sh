@@ -190,6 +190,12 @@ then
     # pull all the qc data together and generate combinedQC.txt
     ./$sampleId/SomaticEnrichmentLib-"$version"/compileQcReport.sh $seqId $panel
 
+    # tidy - remove scratch
+    rm -r /localscratch/"$SLURM_JOB_ID"
+
 else
     echo "not all samples have completed running. Finishing process for this sample."
+
+    # tidy - remove scratch
+    rm -r /localscratch/"$SLURM_JOB_ID"
 fi
