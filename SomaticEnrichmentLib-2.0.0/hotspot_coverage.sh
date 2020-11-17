@@ -73,7 +73,7 @@ do
         name=$(echo $(basename $bedFile) | cut -d"." -f1)
         echo $name
 
-        python /data/diagnostics/apps/CoverageCalculatorPy/CoverageCalculatorPy-v1.1.0/CoverageCalculatorPy.py \
+        python /data/diagnostics/apps/CoverageCalculatorPy/CoverageCalculatorPy-v1.0.0/CoverageCalculatorPy.py \
             -B $bedFile \
             -D "$seqId"_"$sampleId"_DepthOfCoverage.gz \
             --depth $depth \
