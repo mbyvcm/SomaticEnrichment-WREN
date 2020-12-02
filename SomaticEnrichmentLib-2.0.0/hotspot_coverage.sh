@@ -105,12 +105,11 @@ do
         name=$(echo $(basename $gapsFile) | cut -d"." -f1)
         echo $name
 
-        Rscript /data/diagnostics/apps/bed2hgvs/bed2hgvs-v0.1.0/bed2hgvs.R \
+        Rscript /data/diagnostics/apps/bed2hgvs/bed2hgvs-v0.2.0/bed2hgvs.R \
             --bedfile $gapsFile \
             --outname "$name".gaps \
             --outdir  $hscov_outdir \
-            --preferred_tx /data/diagnostics/pipelines/$pipelineName/"$pipelineName"-"$pipelineVersion"/$panel/RochePanCancer_PreferredTranscripts.txt \
-            --refseqdb /data/diagnostics/apps/bed2hgvs/bed2hgvs-v0.1.0/data/ucsc_hg19_ncbiRefSeq.sqlite
+            --preferred_tx /data/diagnostics/pipelines/$pipelineName/"$pipelineName"-"$pipelineVersion"/$panel/RochePanCancer_PreferredTranscripts.txt
 
         rm $hscov_outdir/"$name".nohead.gaps
     done
