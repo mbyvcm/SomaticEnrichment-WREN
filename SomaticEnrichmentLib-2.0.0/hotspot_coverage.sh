@@ -105,7 +105,7 @@ do
         name=$(echo $(basename $gapsFile) | cut -d"." -f1)
         echo $name
 
-        Rscript /data/diagnostics/apps/bed2hgvs/bed2hgvs-v0.2.0/bed2hgvs.R \
+        Rscript /data/diagnostics/apps/bed2hgvs/bed2hgvs-v0.3.0/bed2hgvs.R \
             --bedfile $gapsFile \
             --outname "$name".gaps \
             --outdir  $hscov_outdir \
