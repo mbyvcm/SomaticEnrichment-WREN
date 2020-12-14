@@ -1,34 +1,56 @@
 #!/bin/bash
-#PBS -l walltime=48:00:00
-#PBS -l ncpus=12
-set -euo pipefail
 
-PBS_O_WORKDIR=(`echo $PBS_O_WORKDIR | sed "s/^\/state\/partition1//"`)
-cd $PBS_O_WORKDIR
+#SBATCH --time=12:00:00
+#SBATCH --output=SomaticEnrichment-%N-%j.output
+#SBATCH --error=SomaticEnrichment-%N-%j.error
+#SBATCH --partition=high
+#SBATCH --cpus-per-task=40
 
 # Description: Somatic Enrichment Pipeline. Requires fastq file split by lane
-# Author:      Christopher Medway, All Wales Medical Genetics Service. Includes code from GermlineEnrichment-2.5.2
+# Author:      AWMGS
 # Mode:        BY_SAMPLE
-# Use:         bash within sample directory
+# Use:         sbatch within sample directory
 
-version="1.2.0"
+cd "$SLURM_SUBMIT_DIR"
+
+version="2.0.0"
 
 # load sample variables
 . *.variables
 
-# copy script library
-cp -r /data/diagnostics/pipelines/"$pipelineName"/"$pipelineName"-"$pipelineVersion"/SomaticEnrichmentLib-"$version" /data/results/"$seqId"/"$panel"/"$sampleId"/
+# number of samples required later for CNV calling
+numberSamplesInProject=$(find ../ -maxdepth 1 -mindepth 1 -type d | uniq | wc -l)
+
+# copy library resources
+pipeline_dir=/data/diagnostics/pipelines/"$pipelineName"/"$pipelineName"-"$pipelineVersion"
+cp -r "$pipeline_dir"/SomaticEnrichmentLib-"$version" .
+cp "$pipeline_dir"/"$panel"/"$panel".variables .
+
+# setup local scratch
+SCRATCH_DIR=/localscratch/"$SLURM_JOB_ID"/"$seqId"/"$worklistId"/"$panel"/"$sampleId"
+mkdir -p "$SCRATCH_DIR" && cd "$SCRATCH_DIR"
+
+# setup temp dir
+mkdir tmpdir
+
+# link fastq / variables files to scratch
+ln -s $SLURM_SUBMIT_DIR/* .
 
 # load pipeline variables
-. /data/diagnostics/pipelines/"$pipelineName"/"$pipelineName"-"$pipelineVersion"/"$panel"/"$panel".variables
+. "$panel".variables
 
 # path to panel capture bed file
 vendorCaptureBed=/data/diagnostics/pipelines/"$pipelineName"/"$pipelineName"-"$pipelineVersion"/"$panel"/180702_HG19_PanCancer_EZ_capture_targets.bed
 vendorPrimaryBed=/data/diagnostics/pipelines/"$pipelineName"/"$pipelineName"-"$pipelineVersion"/"$panel"/180702_HG19_PanCancer_EZ_primary_targets.bed
 
-# path go GATK versions
-gatk4=/share/apps/GATK-distros/GATK_4.0.4.0/gatk
-gatk3=/share/apps/GATK-distros/GATK_3.8.0/GenomeAnalysisTK.jar
+# activate conda env
+module purge
+module load anaconda
+. ~/.bashrc
+conda activate $conda_SE
+
+# catch fails early and terminate
+set -euo pipefail
 
 # define fastq variables
 for fastqPair in $(ls "$sampleId"_S*.fastq.gz | cut -d_ -f1-3 | sort | uniq)
@@ -68,17 +90,9 @@ done
 # merge & mark duplicate reads
 ./SomaticEnrichmentLib-"$version"/mark_duplicates.sh $seqId $sampleId 
 
-# basequality recalibration
-# >100^6 on target bases required for this to be effective
-if [ "$includeBQSR = true" ] ; then
-    ./SomaticEnrichmentLib-"$version"/bqsr.sh $seqId $sampleId $panel $vendorCaptureBed $padding $gatk4
-else
-    echo "skipping base quality recalibration"
-    cp "$seqId"_"$sampleId"_rmdup.bam "$seqId"_"$sampleId".bam
-    cp "$seqId"_"$sampleId"_rmdup.bai "$seqId"_"$sampleId".bai
-fi
-
-rm "$seqId"_"$sampleId"_rmdup.bam "$seqId"_"$sampleId"_rmdup.bai
+# rename bam files
+mv "$seqId"_"$sampleId"_rmdup.bam "$seqId"_"$sampleId".bam
+mv "$seqId"_"$sampleId"_rmdup.bai "$seqId"_"$sampleId".bai
 
 # post-alignment QC
 ./SomaticEnrichmentLib-"$version"/post_alignment_qc.sh \
@@ -100,22 +114,21 @@ rm "$seqId"_"$sampleId"_rmdup.bam "$seqId"_"$sampleId"_rmdup.bai
     $pipelineName \
     $pipelineVersion \
     $minimumCoverage \
-    $vendorCaptureBed \
+    $vendorPrimaryBed \
     $padding \
     $minBQS \
-    $minMQS \
-    $gatk3
+    $minMQS
 
 # variant calling
-./SomaticEnrichmentLib-"$version"/mutect2.sh $seqId $sampleId $pipelineName $version $panel $padding $minBQS $minMQS $vendorCaptureBed $gatk4
+./SomaticEnrichmentLib-"$version"/mutect2.sh $seqId $sampleId $pipelineName $version $panel $padding $minBQS $minMQS $vendorPrimaryBed
 
 # variant filter
-./SomaticEnrichmentLib-"$version"/variant_filter.sh $seqId $sampleId $panel $minBQS $minMQS $gatk4
+./SomaticEnrichmentLib-"$version"/variant_filter.sh $seqId $sampleId $panel $minBQS $minMQS
 
 # annotation
 # check that there are called variants to annotate
 if [ $(grep -v "#" "$seqId"_"$sampleId"_filteredStrLeftAligned.vcf | grep -v '^ ' | wc -l) -ne 0 ]; then
-    ./SomaticEnrichmentLib-"$version"/annotation.sh $seqId $sampleId $panel $gatk4
+    ./SomaticEnrichmentLib-"$version"/annotation.sh $seqId $sampleId $panel
 else
     mv "$seqId"_"$sampleId"_filteredStrLeftAligned.vcf "$seqId"_"$sampleId"_filteredStrLeftAligned_annotated.vcf
 fi
@@ -123,49 +136,68 @@ fi
 # generate variant reports
 ./SomaticEnrichmentLib-"$version"/hotspot_variants.sh $seqId $sampleId $panel $pipelineName $pipelineVersion
 
-# add samplename to run-level file if vcf detected
-if [ -e /data/results/$seqId/$panel/$sampleId/"$seqId"_"$sampleId"_filteredStrLeftAligned_annotated.vcf ]
-then
-    echo $sampleId >> /data/results/$seqId/$panel/sampleVCFs.txt
+# run manta for all samples except NTC
+if [[ $sampleId != *'NTC'* ]]; then 
+    ./SomaticEnrichmentLib-"$version"/manta.sh $seqId $sampleId $panel $vendorPrimaryBed
 fi
 
+# migrate data from scratch to results location
+cp "$seqId"_"$sampleId"_filteredStrLeftAligned_annotated.vcf $SLURM_SUBMIT_DIR
+if [ -e "$seqId"_"$sampleId"_filteredStrLeftAligned_annotated.vcf.idx ]; then cp "$seqId"_"$sampleId"_filteredStrLeftAligned_annotated.vcf.idx $SLURM_SUBMIT_DIR; fi
+cp "$seqId"_"$sampleId"_filteredStr.vcf.gz $SLURM_SUBMIT_DIR
+cp "$seqId"_"$sampleId"_filteredStr.vcf.gz.tbi $SLURM_SUBMIT_DIR
+cp "$seqId"_"$sampleId".bam $SLURM_SUBMIT_DIR
+cp "$seqId"_"$sampleId".bai $SLURM_SUBMIT_DIR
+cp "$seqId"_"$sampleId"_HsMetrics.txt $SLURM_SUBMIT_DIR
+cp "$seqId"_"$sampleId"_InsertMetrics.txt $SLURM_SUBMIT_DIR
+cp "$seqId"_"$sampleId"_markDuplicatesMetrics.txt $SLURM_SUBMIT_DIR
+cp "$seqId"_"$sampleId"_DepthOfCoverage.sample_summary $SLURM_SUBMIT_DIR
+cp "$seqId"_"$sampleId"_DepthOfCoverage.gz $SLURM_SUBMIT_DIR
+cp "$seqId"_"$sampleId"_DepthOfCoverage.gz.tbi $SLURM_SUBMIT_DIR
+cp "$sampleId"_VariantReport.txt $SLURM_SUBMIT_DIR
+cp "$seqId"_"$sampleId"_AlignmentSummaryMetrics.txt $SLURM_SUBMIT_DIR
+cp -r hotspot_variants $SLURM_SUBMIT_DIR
+cp -r hotspot_coverage_* $SLURM_SUBMIT_DIR
+if [ -d MANTA ]; then cp -r MANTA $SLURM_SUBMIT_DIR; fi
+cp -r FASTQC $SLURM_SUBMIT_DIR
 
-## POST SNV CALLING ANALYSES
+cd $SLURM_SUBMIT_DIR
+
+# add samplename to run-level file if vcf detected
+if [ -e "$seqId"_"$sampleId"_filteredStrLeftAligned_annotated.vcf ]
+then
+    echo $sampleId >> ../sampleVCFs.txt    
+fi
+
+# ---------------------------------------------------------------------------------------------------------
+#  RUN LEVEL ANALYSES
+# ---------------------------------------------------------------------------------------------------------
 
 numberSamplesInVcf=$(cat ../sampleVCFs.txt | uniq | wc -l)
-numberSamplesInProject=$(find ../ -maxdepth 2 -mindepth 2 | grep .variables | uniq | wc -l)
 
 # only the last sample to complete SNV calling will run the following
 if [ $numberSamplesInVcf -eq $numberSamplesInProject ]
 then
 
-    echo "running CNVKit as $numberSamplesInVcf samples have completed SNV calling"
     # run cnv kit
+    echo "running CNVKit as $numberSamplesInVcf samples have completed SNV calling"
     ./SomaticEnrichmentLib-"$version"/cnvkit.sh $seqId $panel $vendorPrimaryBed $version
- 
+
+    # move to run-level
+    cd ../
+
     # generate worksheets
-    ./SomaticEnrichmentLib-"$version"/make_variant_report.sh $seqId $panel
-    
+    ./$sampleId/SomaticEnrichmentLib-"$version"/make_variant_report.sh
+
     # pull all the qc data together and generate combinedQC.txt
-    ./SomaticEnrichmentLib-"$version"/compileQcReport.sh $seqId $panel
-    
-    # tidy up
-    rm /data/results/$seqId/$panel/*.cnn
-    rm /data/results/$seqId/$panel/*.bed
+    ./$sampleId/SomaticEnrichmentLib-"$version"/compileQcReport.sh $seqId $panel
+
+    # tidy - remove scratch
+    rm -r /localscratch/"$SLURM_JOB_ID"
 
 else
-    echo "not all samples have completed running. Finising process for this sample."
+    echo "not all samples have completed running. Finishing process for this sample."
+
+    # tidy - remove scratch
+    rm -r /localscratch/"$SLURM_JOB_ID"
 fi
-
-
-# run manta for all samples except NTC
-if [ $sampleId != 'NTC' ]; then 
-    ./SomaticEnrichmentLib-"$version"/manta.sh $seqId $sampleId $panel $vendorPrimaryBed
-fi
-
-
-# tidy up
-rm /data/results/$seqId/$panel/$sampleId/*.interval_list
-rm /data/results/$seqId/$panel/$sampleId/seqArtifacts.*
-rm /data/results/$seqId/$panel/$sampleId/getpileupsummaries.table
-rm /data/results/$seqId/$panel/$sampleId/calculateContamination.table

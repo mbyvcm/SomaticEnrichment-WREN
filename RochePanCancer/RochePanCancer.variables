@@ -6,3 +6,12 @@ expectedInsertSize=150 #insert size
 padding=250
 minBQS=10
 minMQS=20
+conda_SE=SomaticEnrichment-v2.0.0
+conda_gatk=gatk-v3.8.0
+conda_manta=manta-v1.6.0
+conda_cnvkit=cnvkit-v0.9.7
+conda_vep=vep-v100
+conda_VirtualHood=VirtualHood
+conda_bed2hgvs=bed2hgvs
+conda_vcfparse=vcf_parse
+
